@@ -1,0 +1,11 @@
+
+node_modules
+.settings
+.project
+*.log
+*.rdb
+coverage
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+.git
+.gitignore

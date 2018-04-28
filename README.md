@@ -4,4 +4,7 @@ O SICONV disponibiliza acesso livre às informações de Transferências Volunt�
 
 Ref.: http://portal.convenios.gov.br/download-de-dados
 
+## License
+
+[MIT](LICENSE)
 
