@@ -2,9 +2,11 @@ import * as Knex from 'knex';
 
 exports.up = function (knex: Knex, promise: any): Promise<any> {
     return promise.all([
+        knex.raw('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"'),
+
         // Consorcios
         knex.schema.createTable('consorcios', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('id_proposta'); // ID_PROPOSTA
             table.string('cnpj_consorcio'); // CNPJ_CONSORCIO;
             table.string('nome_consorcio'); // NOME_CONSORCIO;
@@ -14,9 +16,11 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
             table.text('desc_cnae_secundario'); // DESC_CNAE_SECUNDARIO;
             table.string('cnpj_participante'); // CNPJ_PARTICIPANTE;
             table.string('nome_participante'); // NOME_PARTICIPANTE;
+            table.string('reference');
             table.timestamps(true, true);
 
             table.unique(['id_proposta', 'cnpj_consorcio', 'nome_consorcio', 'codigo_cnae_primario', 'codigo_cnae_secundario', 'cnpj_participante']);
+            table.unique(['reference'])
             table.index(['id_proposta']);
             table.index(['cnpj_consorcio']);
             table.index(['cnpj_participante']);
@@ -24,7 +28,7 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
 
         // Convenio
         knex.schema.createTable('convenios', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('nr_convenio');
             table.string('id_proposta');
             table.date('dia_assin_conv');
@@ -54,6 +58,7 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
             table.float('vl_saldo_reman_convenente');
             table.float('vl_rendimento_aplicacao');
             table.float('vl_ingresso_contrapartida');
+            table.string('reference');
             table.timestamps(true, true);
 
             table.unique(['nr_convenio']);
@@ -64,7 +69,7 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
 
         // Desembolso
         knex.schema.createTable('desembolsos', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('nr_convenio');
             table.date('dt_ult_desembolso');
             table.integer('qtd_dias_sem_desembolso');
@@ -74,15 +79,17 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
             table.integer('mes_desembolso');
             table.string('nr_siafi');
             table.float('vl_desembolsado');
+            table.string('reference');
             table.timestamps(true, true);
 
             table.unique(['nr_convenio', 'id_desembolso']);
+            table.unique(['reference'])
             table.index(['nr_convenio']);
         }),
 
         // Emenda
         knex.schema.createTable('emendas', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('id_proposta');
             table.string('qualif_proponente');
             table.string('cod_programa_emenda');
@@ -93,8 +100,10 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
             table.string('tipo_parlamentar');
             table.float('valor_repasse_proposta_emenda');
             table.float('valor_repasse_emenda');
+            table.string('reference');
             table.timestamps(true, true);
 
+            table.unique(['reference'])
             table.index(['id_proposta']);
             table.index(['cod_programa_emenda']);
             table.index(['nr_emenda']);
@@ -102,7 +111,7 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
 
         // Empenho
         knex.schema.createTable('empenhos', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('id_empenho');
             table.string('nr_empenho');
             table.string('tipo_nota');
@@ -112,26 +121,30 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
             table.text('desc_situacao_empenho');
             table.string('valor_empenho');
             table.string('nr_convenio');
+            table.string('reference');
             table.timestamps(true, true);
 
             table.unique(['id_empenho']);
+            table.unique(['reference'])
             table.index(['nr_empenho']);
         }),
 
         // Empenhos Desembolsos
         knex.schema.createTable('empenho_desembolsos', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('id_desembolso');
             table.string('id_empenho');
             table.float('valor_grupo');
+            table.string('reference');
             table.timestamps(true, true);
 
+            table.unique(['reference'])
             table.index(['id_desembolso', 'id_empenho']);
         }),
 
         // Etapa Crono Fisicos
         knex.schema.createTable('etapa_crono_fisicos', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('id_meta');
             table.string('id_etapa');
             table.string('nr_etapa');
@@ -145,9 +158,11 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
             table.integer('qtd_etapa');
             table.string('und_fornecimento_etapa');
             table.float('vl_etapa');
+            table.string('reference');
             table.timestamps(true, true);
 
             table.unique(['id_etapa']);
+            table.unique(['reference'])
             table.index(['id_meta']);
             table.index(['nr_etapa']);
             table.index(['uf_etapa']);
@@ -155,35 +170,39 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
 
         // Historico Situacao
         knex.schema.createTable('historico_situacoes', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('id_proposta');
             table.string('nr_convenio');
             table.date('dia_historico_sit');
             table.string('historico_sit');
             table.integer('dias_historico_sit');
             table.string('cod_historico_sit');
+            table.string('reference');
             table.timestamps(true, true);
 
             table.unique(['id_proposta', 'dia_historico_sit', 'cod_historico_sit']);
+            table.unique(['reference'])
             table.index(['id_proposta']);
             table.index(['nr_convenio']);
         }),
 
         // Ingresso Contrapartida
         knex.schema.createTable('ingresso_contrapartidas', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('nr_convenio');
             table.date('dt_ingresso_contrapartida');
             table.float('vl_ingresso_contrapartida');
+            table.string('reference');
             table.timestamps(true, true);
 
             table.unique(['nr_convenio', 'dt_ingresso_contrapartida']);
+            table.unique(['reference'])
             table.index(['nr_convenio']);
         }),
 
         // Meta Crono Fisico
         knex.schema.createTable('meta_crono_fisicos', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('id_meta');
             table.string('nr_convenio');
             table.string('cod_programa');
@@ -200,9 +219,11 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
             table.integer('qtd_meta');
             table.string('und_fornecimento_meta');
             table.float('vl_meta');
+            table.string('reference');
             table.timestamps(true, true);
 
             table.unique(['id_meta']);
+            table.unique(['reference'])
             table.index(['nr_convenio']);
             table.index(['cod_programa']);
             table.index(['nome_programa']);
@@ -212,14 +233,16 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
 
         // Obtv Convenente
         knex.schema.createTable('obtv_convenentes', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('nr_mov_fin');
             table.string('identif_favorecido_obtv_conv');
             table.string('nm_favorecido_obtv_conv');
             table.string('tp_aquisicao');
             table.float('vl_pago_obtv_conv');
+            table.string('reference');
             table.timestamps(true, true);
 
+            table.unique(['reference'])
             table.index(['nr_mov_fin']);
             table.index(['identif_favorecido_obtv_conv']);
 
@@ -227,7 +250,7 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
 
         // Pagamento
         knex.schema.createTable('pagamentos', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('nr_mov_fin');
             table.string('nr_convenio');
             table.string('identif_fornecedor');
@@ -237,16 +260,18 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
             table.text('nr_dl');
             table.text('desc_dl');
             table.float('vl_pago');
+            table.string('reference');
             table.timestamps(true, true);
 
             table.unique(['nr_mov_fin']);
+            table.unique(['reference'])
             table.index(['nr_convenio']);
             table.index(['identif_fornecedor']);
         }),
 
         // Plano Aplicacao Detalhado
         knex.schema.createTable('plano_aplicacao_detalhados', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('id_proposta');
             table.string('sigla');
             table.string('municipio');
@@ -260,15 +285,17 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
             table.integer('qtd_item');
             table.float('valor_unitario_item');
             table.float('valor_total_item');
+            table.string('reference');
             table.timestamps(true, true);
 
+            table.unique(['reference'])
             table.index(['id_proposta']);
             table.index(['sigla']);
         }),
 
         // Programa
         knex.schema.createTable('programas', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('cod_orgao_sup_programa');
             table.text('desc_orgao_sup_programa');
             table.string('id_programa');
@@ -287,8 +314,10 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
             table.string('natureza_juridica_programa');
             table.string('uf_programa');
             table.string('acao_orcamentaria');
+            table.string('reference');
             table.timestamps(true, true);
 
+            table.unique(['reference'])
             table.index(['cod_orgao_sup_programa']);
             table.index(['id_programa']);
             table.index(['cod_programa']);
@@ -297,17 +326,19 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
 
         // Programa Proposta
         knex.schema.createTable('programa_propostas', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('id_programa');
             table.string('id_proposta');
+            table.string('reference');
             table.timestamps(true, true);
 
+            table.unique(['reference'])
             table.index(['id_programa', 'id_proposta']);
         }),
 
         // Proponentes
         knex.schema.createTable('proponentes', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('identif_proponente');
             table.string('nm_proponente');
             table.string('municipio_proponente');
@@ -318,9 +349,11 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
             table.string('email_proponente');
             table.string('telefone_proponente');
             table.string('fax_proponente');
+            table.string('reference');
             table.timestamps(true, true);
 
             table.unique(['identif_proponente']);
+            table.unique(['reference'])
             table.index(['nm_proponente']);
             table.index(['uf_proponente']);
 
@@ -328,7 +361,7 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
 
         // Proposta
         knex.schema.createTable('propostas', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('id_proposta');
             table.string('uf_proponente');
             table.string('munic_proponente');
@@ -356,9 +389,11 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
             table.float('vl_global_prop');
             table.float('vl_repasse_prop');
             table.float('vl_contrapartida_prop');
+            table.string('reference');
             table.timestamps(true, true);
 
             table.unique(['id_proposta']);
+            table.unique(['reference'])
             table.index(['uf_proponente']);
             table.index(['nr_proposta']);
             table.index(['cod_orgao']);
@@ -367,7 +402,7 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
 
         // Prorroga Oficio
         knex.schema.createTable('prorroga_oficios', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('nr_convenio');
             table.string('nr_prorroga');
             table.date('dt_inicio_prorroga');
@@ -375,16 +410,18 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
             table.integer('dias_prorroga');
             table.date('dt_assinatura_prorroga');
             table.string('sit_prorroga');
+            table.string('reference');
             table.timestamps(true, true);
 
             table.unique(['nr_convenio', 'nr_prorroga', 'dt_inicio_prorroga', 'dt_fim_prorroga', 'dias_prorroga', 'dt_assinatura_prorroga', 'sit_prorroga']);
+            table.unique(['reference'])
             table.index(['nr_convenio']);
             table.index(['nr_prorroga']);
         }),
 
         // Termo Aditivos
         knex.schema.createTable('termo_aditivos', (table) => {
-            table.integer('id').primary();
+            table.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary();
             table.string('nr_convenio');
             table.string('numero_ta');
             table.string('tipo_ta');
@@ -395,22 +432,13 @@ exports.up = function (knex: Knex, promise: any): Promise<any> {
             table.date('dt_inicio_ta');
             table.date('dt_fim_ta');
             table.text('justificativa_ta');
+            table.string('reference');
             table.timestamps(true, true);
 
             table.unique(['nr_convenio', 'numero_ta', 'tipo_ta', 'dt_inicio_ta', 'justificativa_ta']);
+            table.unique(['reference'])
             table.index(['nr_convenio']);
             table.index(['numero_ta']);
-        }),
-
-        // History
-        knex.schema.createTable('history', (table) => {
-            table.increments('id');
-            table.string('file').notNullable();
-            table.string('line').notNullable();
-            table.string('persisted').notNullable();
-            table.timestamps(true, true);
-
-            table.unique(['file', 'line']);
         }),
     ]);
 
@@ -437,6 +465,6 @@ exports.down = function (knex: Knex, promise: any): Promise<any> {
         knex.schema.dropTable('propostas'),
         knex.schema.dropTable('prorroga_oficios'),
         knex.schema.dropTable('termo_aditivos'),
-        knex.schema.dropTable('history'),
+        knex.raw('DROP EXTENSION IF EXISTS "uuid-ossp"'),
     ]);
 };
